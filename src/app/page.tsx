@@ -1,103 +1,135 @@
-import Image from "next/image";
+'use client';
+
+import Link from 'next/link';
+import { motion } from 'framer-motion';
 
 export default function Home() {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center p-8">
+      <motion.div
+        className="text-center max-w-2xl"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+      >
+        {/* Title */}
+        <motion.h1
+          className="text-6xl font-bold text-white mb-4"
+          initial={{ scale: 0.8 }}
+          animate={{ scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          🎭 Cuentería
+        </motion.h1>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+        <motion.h2
+          className="text-3xl font-semibold text-cyan-400 mb-8"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+          Sound Board
+        </motion.h2>
+
+        {/* Description */}
+        <motion.p
+          className="text-gray-300 text-lg mb-12 leading-relaxed"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.6 }}
         >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+          Crea atmósfera única para tus sesiones de cuentería. Un dispositivo reproduce los sonidos
+          mientras otros controlan los efectos en tiempo real desde sus móviles.
+        </motion.p>
+
+        {/* Action buttons */}
+        <motion.div
+          className="flex flex-col sm:flex-row gap-6 justify-center"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.8 }}
         >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          <Link href="/host">
+            <motion.button
+              className="bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-700 hover:to-cyan-700
+                         text-white font-bold py-4 px-8 rounded-xl text-lg shadow-lg
+                         transform transition-all duration-300 w-full sm:w-auto min-w-[200px]"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              🎵 Soy el Host
+              <div className="text-sm opacity-90 mt-1">
+                (Reproductor de audio)
+              </div>
+            </motion.button>
+          </Link>
+
+          <Link href="/client">
+            <motion.button
+              className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700
+                         text-white font-bold py-4 px-8 rounded-xl text-lg shadow-lg
+                         transform transition-all duration-300 w-full sm:w-auto min-w-[200px]"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              🎮 Soy un Cliente
+              <div className="text-sm opacity-90 mt-1">
+                (Control de efectos)
+              </div>
+            </motion.button>
+          </Link>
+        </motion.div>
+
+        {/* How it works */}
+        <motion.div
+          className="mt-16 text-left"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 1 }}
+        >
+          <h3 className="text-xl font-semibold text-white mb-6 text-center">
+            ¿Cómo funciona?
+          </h3>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            <motion.div
+              className="bg-gray-800 p-6 rounded-xl"
+              whileHover={{ scale: 1.02 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className="text-3xl mb-3">🎭</div>
+              <h4 className="text-white font-medium mb-2">1. Preparación</h4>
+              <p className="text-gray-400 text-sm">
+                El narrador abre la app como "Host" en su computadora donde se reproducirán los sonidos.
+              </p>
+            </motion.div>
+
+            <motion.div
+              className="bg-gray-800 p-6 rounded-xl"
+              whileHover={{ scale: 1.02 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className="text-3xl mb-3">📱</div>
+              <h4 className="text-white font-medium mb-2">2. Conexión</h4>
+              <p className="text-gray-400 text-sm">
+                Los participantes se conectan como "Clientes" desde sus móviles para controlar los efectos.
+              </p>
+            </motion.div>
+
+            <motion.div
+              className="bg-gray-800 p-6 rounded-xl"
+              whileHover={{ scale: 1.02 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className="text-3xl mb-3">🎵</div>
+              <h4 className="text-white font-medium mb-2">3. ¡Acción!</h4>
+              <p className="text-gray-400 text-sm">
+                Durante la historia, presionan botones para crear atmósfera en tiempo real.
+              </p>
+            </motion.div>
+          </div>
+        </motion.div>
+      </motion.div>
     </div>
   );
 }
