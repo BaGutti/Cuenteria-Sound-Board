@@ -159,8 +159,8 @@ export default function ClientPage() {
           <ul className="text-left space-y-1">
             <li>• Presiona los botones cuando el narrador mencione elementos relacionados</li>
             <li>• Los sonidos se reproducirán automáticamente en el dispositivo host</li>
-            <li>• Usa "🎚️ Fade Out" para transiciones suaves entre escenas</li>
-            <li>• Usa "⏹️ Stop All" para parar todos los sonidos inmediatamente</li>
+            <li>• Usa &quot;🎚️ Fade Out&quot; para transiciones suaves entre escenas</li>
+            <li>• Usa &quot;⏹️ Stop All&quot; para parar todos los sonidos inmediatamente</li>
             <li>• ¡Diviértete creando atmósfera para la historia!</li>
           </ul>
         </div>

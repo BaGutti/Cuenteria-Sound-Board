@@ -7,7 +7,7 @@ interface ExtendedNextApiResponse extends NextApiResponse {
     server: NetServer & {
       io?: ServerIO;
     };
-  };
+  } & NextApiResponse['socket'];
 }
 
 const ioHandler = (req: NextApiRequest, res: ExtendedNextApiResponse) => {
@@ -29,7 +29,7 @@ const ioHandler = (req: NextApiRequest, res: ExtendedNextApiResponse) => {
       console.log(`Socket connected: ${socket.id}`);
 
       // Log all events for debugging
-      socket.onAny((eventName, ...args) => {
+      socket.onAny((eventName) => {
         console.log(`📨 Event: ${eventName} [${socket.id}]`);
       });
 

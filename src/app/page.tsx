@@ -100,7 +100,7 @@ export default function Home() {
               <div className="text-3xl mb-3">🎭</div>
               <h4 className="text-white font-medium mb-2">1. Preparación</h4>
               <p className="text-gray-400 text-sm">
-                El narrador abre la app como "Host" en su computadora donde se reproducirán los sonidos.
+                El narrador abre la app como &quot;Host&quot; en su computadora donde se reproducirán los sonidos.
               </p>
             </motion.div>
 
@@ -112,7 +112,7 @@ export default function Home() {
               <div className="text-3xl mb-3">📱</div>
               <h4 className="text-white font-medium mb-2">2. Conexión</h4>
               <p className="text-gray-400 text-sm">
-                Los participantes se conectan como "Clientes" desde sus móviles para controlar los efectos.
+                Los participantes se conectan como &quot;Clientes&quot; desde sus móviles para controlar los efectos.
               </p>
             </motion.div>
 

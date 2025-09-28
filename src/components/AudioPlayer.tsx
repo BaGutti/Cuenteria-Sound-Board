@@ -1,18 +1,21 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Howl } from 'howler';
 import { useSocket } from '@/hooks/useSocket';
 import { soundButtons } from '@/lib/sounds';
 import { motion } from 'framer-motion';
+import VisualEffects from './VisualEffects';
 
 export default function AudioPlayer() {
   const [soundInstances, setSoundInstances] = useState<Map<string, Howl>>(new Map());
   const [lastPlayed, setLastPlayed] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isFadingOut, setIsFadingOut] = useState(false);
-  const [masterVolume, setMasterVolume] = useState(1.0);
+  const [masterVolume] = useState(1.0);
   const [playingSounds, setPlayingSounds] = useState<Set<string>>(new Set());
+  const [activeVisualEffects, setActiveVisualEffects] = useState<Set<string>>(new Set());
+  const [isTheaterMode, setIsTheaterMode] = useState(false);
   const { socket, isConnected } = useSocket();
 
   useEffect(() => {
@@ -56,50 +59,15 @@ export default function AudioPlayer() {
     return () => {
       instances.forEach(sound => sound.unload());
     };
-  }, []);
+  }, [masterVolume]);
 
-  useEffect(() => {
-    if (!socket) return;
-
-    const handleSoundTriggered = (soundId: string) => {
-      const soundInstance = soundInstances.get(soundId);
-      if (soundInstance) {
-        soundInstance.play();
-        setLastPlayed(soundId);
-
-        setTimeout(() => {
-          setLastPlayed(null);
-        }, 1000);
-      }
-    };
-
-    const handleFadeOutTriggered = (duration: number) => {
-      console.log(`🎚️ Received fade out command: ${duration}ms`);
-      fadeOutAllSounds(duration);
-    };
-
-    const handleStopAllTriggered = () => {
-      console.log(`⏹️ Received stop all command`);
-      stopAllSounds();
-    };
-
-    socket.on('soundTriggered', handleSoundTriggered);
-    socket.on('fadeOutTriggered', handleFadeOutTriggered);
-    socket.on('stopAllTriggered', handleStopAllTriggered);
-
-    return () => {
-      socket.off('soundTriggered', handleSoundTriggered);
-      socket.off('fadeOutTriggered', handleFadeOutTriggered);
-      socket.off('stopAllTriggered', handleStopAllTriggered);
-    };
-  }, [socket, soundInstances]);
 
   const getCurrentSound = () => {
     if (!lastPlayed) return null;
     return soundButtons.find(button => button.id === lastPlayed);
   };
 
-  const fadeOutAllSounds = async (duration = 2000) => {
+  const fadeOutAllSounds = useCallback(async (duration = 2000) => {
     setIsFadingOut(true);
     console.log('🎚️ Starting fade out...', { soundInstances: soundInstances.size });
 
@@ -144,9 +112,9 @@ export default function AudioPlayer() {
       setPlayingSounds(new Set());
       console.log('✅ Fade out complete - UI reset');
     }, duration + 200);
-  };
+  }, [soundInstances, setIsFadingOut, setPlayingSounds]);
 
-  const stopAllSounds = () => {
+  const stopAllSounds = useCallback(() => {
     console.log('⏹️ Stopping all sounds...', { soundInstances: soundInstances.size });
 
     let stoppedCount = 0;
@@ -162,10 +130,100 @@ export default function AudioPlayer() {
     setPlayingSounds(new Set());
     setIsFadingOut(false); // Reset fade out state if active
     console.log(`✅ All sounds stopped. Total stopped: ${stoppedCount}`);
-  };
+  }, [soundInstances, masterVolume, setPlayingSounds, setIsFadingOut]);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleSoundTriggered = (soundId: string) => {
+      const soundInstance = soundInstances.get(soundId);
+      if (soundInstance) {
+        soundInstance.play();
+        setLastPlayed(soundId);
+
+        // Get audio duration and activate visual effects
+        const audioDuration = soundInstance.duration() * 1000; // Convert to milliseconds
+        console.log(`🎵 Audio duration for ${soundId}: ${audioDuration}ms`);
+
+        // Map sound IDs to visual effects
+        const soundToEffectMap: Record<string, string> = {
+          'rain': 'rain',
+          'water': 'water',
+          'thunder': 'lightning',
+          'wind': 'wind',
+          'fire': 'fire',
+          'forest': 'forest',
+          'birds': 'birds',
+          'footsteps': 'footsteps',
+          'horse': 'horse',
+          'crowd': 'crowd',
+          'door': 'door',
+          'bell': 'bell',
+        };
+
+        const effectType = soundToEffectMap[soundId];
+        if (effectType) {
+          // Add effect to active set
+          setActiveVisualEffects(prev => new Set([...prev, effectType]));
+          console.log(`🎨 Adding visual effect: ${effectType} for ${audioDuration}ms`);
+
+          // Remove effect when audio ends
+          setTimeout(() => {
+            setActiveVisualEffects(prev => {
+              const newSet = new Set(prev);
+              newSet.delete(effectType);
+              return newSet;
+            });
+            console.log(`🎨 Removing visual effect: ${effectType}`);
+          }, audioDuration);
+        }
+
+        // Keep the UI indicator for a shorter time
+        setTimeout(() => {
+          setLastPlayed(null);
+        }, Math.min(1000, audioDuration)); // Show for 1 second or audio duration, whichever is shorter
+      }
+    };
+
+    const handleFadeOutTriggered = (duration: number) => {
+      console.log(`🎚️ Received fade out command: ${duration}ms`);
+      fadeOutAllSounds(duration);
+
+      // Fade out visual effects too
+      setTimeout(() => {
+        setActiveVisualEffects(new Set());
+        console.log(`🎨 All visual effects stopped due to fade out`);
+      }, duration);
+    };
+
+    const handleStopAllTriggered = () => {
+      console.log(`⏹️ Received stop all command`);
+      stopAllSounds();
+
+      // Stop visual effects immediately
+      setActiveVisualEffects(new Set());
+      console.log(`🎨 All visual effects stopped due to stop all`);
+    };
+
+    socket.on('soundTriggered', handleSoundTriggered);
+    socket.on('fadeOutTriggered', handleFadeOutTriggered);
+    socket.on('stopAllTriggered', handleStopAllTriggered);
+
+    return () => {
+      socket.off('soundTriggered', handleSoundTriggered);
+      socket.off('fadeOutTriggered', handleFadeOutTriggered);
+      socket.off('stopAllTriggered', handleStopAllTriggered);
+    };
+  }, [socket, soundInstances, fadeOutAllSounds, stopAllSounds, setActiveVisualEffects, setLastPlayed]);
 
   return (
-    <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center p-8">
+    <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center p-8 relative">
+      {/* Visual Effects Overlay */}
+      <VisualEffects
+        activeEffects={activeVisualEffects}
+        isTheaterMode={isTheaterMode}
+        onExitTheater={() => setIsTheaterMode(false)}
+      />
       <div className="text-center mb-8">
         <h1 className="text-4xl font-bold text-white mb-4">🎭 Host Audio Player</h1>
         <div className="flex items-center justify-center gap-3 mb-6">
@@ -184,9 +242,19 @@ export default function AudioPlayer() {
       </div>
 
       <div className="bg-gray-800 rounded-2xl p-8 shadow-2xl max-w-md w-full">
-        <h2 className="text-xl font-semibold text-white mb-6 text-center">
+        <h2 className="text-xl font-semibold text-white mb-4 text-center">
           💫 Reproductor Principal
         </h2>
+
+        {/* Theater Mode Button */}
+        <div className="mb-6 text-center">
+          <button
+            onClick={() => setIsTheaterMode(true)}
+            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-6 py-3 rounded-xl font-medium text-sm transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+          >
+            🎭 Activar Modo Teatro
+          </button>
+        </div>
 
 
         {/* Playing sounds indicator */}
