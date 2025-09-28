@@ -26,6 +26,7 @@ export default function ClientPage() {
   };
 
   const handleFadeOut = () => {
+    console.log('🎚️ BUTTON CLICKED: Fade out button pressed');
     setIsProcessingFadeOut(true);
     emitFadeOut(2000);
 
@@ -36,6 +37,7 @@ export default function ClientPage() {
   };
 
   const handleStopAll = () => {
+    console.log('⏹️ BUTTON CLICKED: Stop all button pressed');
     emitStopAll();
   };
 

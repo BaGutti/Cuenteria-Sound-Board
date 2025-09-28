@@ -101,47 +101,67 @@ export default function AudioPlayer() {
 
   const fadeOutAllSounds = async (duration = 2000) => {
     setIsFadingOut(true);
+    console.log('🎚️ Starting fade out...', { soundInstances: soundInstances.size });
 
+    let playingSoundCount = 0;
+
+    // Manual fade out usando setInterval para garantizar que funcione
     const fadeStep = 50; // ms between volume changes
     const steps = duration / fadeStep;
-    const volumeDecrement = masterVolume / steps;
+    let currentStep = 0;
 
-    let currentVolume = masterVolume;
+    soundInstances.forEach(sound => {
+      if (sound.playing()) {
+        playingSoundCount++;
+        console.log('🔊 Found playing sound, starting fade...');
 
-    const fadeInterval = setInterval(() => {
-      currentVolume -= volumeDecrement;
+        const originalVolume = sound.volume();
+        console.log('🔊 Original volume:', originalVolume);
 
-      if (currentVolume <= 0) {
-        currentVolume = 0;
-        clearInterval(fadeInterval);
+        const fadeInterval = setInterval(() => {
+          currentStep++;
+          const progress = currentStep / steps;
+          const newVolume = originalVolume * (1 - progress);
 
-        // Stop all sounds after fade out completes
-        soundInstances.forEach(sound => {
-          sound.stop();
-        });
+          sound.volume(Math.max(0, newVolume));
+          console.log('🔊 Fade step:', currentStep, 'Volume:', newVolume);
 
-        // Reset volume back to normal for next sounds
-        setTimeout(() => {
-          soundInstances.forEach(sound => {
-            sound.volume(masterVolume);
-          });
-          setIsFadingOut(false);
-          setPlayingSounds(new Set());
-        }, 100);
+          if (currentStep >= steps || newVolume <= 0) {
+            clearInterval(fadeInterval);
+            sound.stop();
+            sound.volume(originalVolume); // Reset for next time
+            console.log('✅ Sound stopped and volume reset');
+          }
+        }, fadeStep);
       }
+    });
 
-      // Apply current volume to all playing sounds
-      soundInstances.forEach(sound => {
-        sound.volume(currentVolume);
-      });
-    }, fadeStep);
+    console.log('🎚️ Total playing sounds found:', playingSoundCount);
+
+    // Reset UI state after fade duration
+    setTimeout(() => {
+      setIsFadingOut(false);
+      setPlayingSounds(new Set());
+      console.log('✅ Fade out complete - UI reset');
+    }, duration + 200);
   };
 
   const stopAllSounds = () => {
-    soundInstances.forEach(sound => {
-      sound.stop();
+    console.log('⏹️ Stopping all sounds...', { soundInstances: soundInstances.size });
+
+    let stoppedCount = 0;
+    soundInstances.forEach((sound, index) => {
+      if (sound.playing()) {
+        console.log(`🔇 Stopping sound ${index}`);
+        sound.stop();
+        sound.volume(masterVolume); // Reset volume
+        stoppedCount++;
+      }
     });
+
     setPlayingSounds(new Set());
+    setIsFadingOut(false); // Reset fade out state if active
+    console.log(`✅ All sounds stopped. Total stopped: ${stoppedCount}`);
   };
 
   return (

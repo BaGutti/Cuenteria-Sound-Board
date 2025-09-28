@@ -16,12 +16,12 @@ export function useSocket() {
 
     const socketInstance = io(socketUrl, {
       path: '/api/socketio',
-      transports: ['polling', 'websocket'], // Try polling first
+      transports: ['polling'], // Use only polling to avoid websocket issues
       timeout: 10000,
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
-      forceNew: true,
+      forceNew: false,
     });
 
     socketInstance.on('connect', () => {
@@ -54,27 +54,31 @@ export function useSocket() {
   const emitSound = useCallback((soundId: string) => {
     if (socket && isConnected) {
       socket.emit('playSound', soundId);
-      console.log(`🎵 Emitted sound: ${soundId}`);
+      console.log(`🎵 Emitted sound: ${soundId} [Client Socket: ${socket.id}]`);
     } else {
       console.warn('⚠️ Cannot emit sound - socket not connected');
     }
   }, [socket, isConnected]);
 
   const emitFadeOut = useCallback((duration: number = 2000) => {
+    console.log(`🎚️ EMIT FUNCTION CALLED: emitFadeOut with duration ${duration}ms`);
+    console.log(`🔌 Socket status: connected=${isConnected}, socket=${!!socket}`);
     if (socket && isConnected) {
       socket.emit('fadeOut', duration);
-      console.log(`🎚️ Emitted fade out: ${duration}ms`);
+      console.log(`🎚️ ✅ Successfully emitted fade out: ${duration}ms [Client Socket: ${socket.id}]`);
     } else {
-      console.warn('⚠️ Cannot emit fade out - socket not connected');
+      console.warn('⚠️ Cannot emit fade out - socket not connected', {socket: !!socket, isConnected});
     }
   }, [socket, isConnected]);
 
   const emitStopAll = useCallback(() => {
+    console.log(`⏹️ EMIT FUNCTION CALLED: emitStopAll`);
+    console.log(`🔌 Socket status: connected=${isConnected}, socket=${!!socket}`);
     if (socket && isConnected) {
       socket.emit('stopAll');
-      console.log(`⏹️ Emitted stop all`);
+      console.log(`⏹️ ✅ Successfully emitted stop all [Client Socket: ${socket.id}]`);
     } else {
-      console.warn('⚠️ Cannot emit stop all - socket not connected');
+      console.warn('⚠️ Cannot emit stop all - socket not connected', {socket: !!socket, isConnected});
     }
   }, [socket, isConnected]);
 

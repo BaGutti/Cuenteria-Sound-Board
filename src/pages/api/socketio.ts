@@ -28,18 +28,23 @@ const ioHandler = (req: NextApiRequest, res: ExtendedNextApiResponse) => {
     io.on('connection', (socket) => {
       console.log(`Socket connected: ${socket.id}`);
 
+      // Log all events for debugging
+      socket.onAny((eventName, ...args) => {
+        console.log(`📨 Event: ${eventName} [${socket.id}]`);
+      });
+
       socket.on('playSound', (soundId: string) => {
-        console.log(`Playing sound: ${soundId}`);
+        console.log(`🎵 Playing sound: ${soundId} [Socket: ${socket.id}]`);
         socket.broadcast.emit('soundTriggered', soundId);
       });
 
       socket.on('fadeOut', (duration: number = 2000) => {
-        console.log(`Fade out requested with duration: ${duration}ms`);
+        console.log(`🎚️ Fade out requested with duration: ${duration}ms [Socket: ${socket.id}]`);
         socket.broadcast.emit('fadeOutTriggered', duration);
       });
 
       socket.on('stopAll', () => {
-        console.log(`Stop all sounds requested`);
+        console.log(`⏹️ Stop all sounds requested [Socket: ${socket.id}]`);
         socket.broadcast.emit('stopAllTriggered');
       });
 
