@@ -9,13 +9,19 @@ export function useSocket() {
   const [connectionAttempts, setConnectionAttempts] = useState(0);
 
   useEffect(() => {
-    const socketInstance = io({
+    // Use the current host for socket connection
+    const socketUrl = typeof window !== 'undefined' ?
+      `${window.location.protocol}//${window.location.host}` :
+      '';
+
+    const socketInstance = io(socketUrl, {
       path: '/api/socketio',
-      transports: ['websocket', 'polling'],
-      timeout: 5000,
+      transports: ['polling', 'websocket'], // Try polling first
+      timeout: 10000,
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
+      forceNew: true,
     });
 
     socketInstance.on('connect', () => {

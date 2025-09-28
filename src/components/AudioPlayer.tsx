@@ -135,7 +135,7 @@ export default function AudioPlayer() {
           Comparte esta URL con tus compañeros para que controlen los sonidos:
         </p>
         <code className="bg-gray-800 text-cyan-400 px-4 py-2 rounded-lg text-sm">
-          {typeof window !== 'undefined' ? `${window.location.origin}/client` : '/client'}
+          192.168.20.65:3000/client
         </code>
       </div>
     </div>
