@@ -60,10 +60,30 @@ export function useSocket() {
     }
   }, [socket, isConnected]);
 
+  const emitFadeOut = useCallback((duration: number = 2000) => {
+    if (socket && isConnected) {
+      socket.emit('fadeOut', duration);
+      console.log(`🎚️ Emitted fade out: ${duration}ms`);
+    } else {
+      console.warn('⚠️ Cannot emit fade out - socket not connected');
+    }
+  }, [socket, isConnected]);
+
+  const emitStopAll = useCallback(() => {
+    if (socket && isConnected) {
+      socket.emit('stopAll');
+      console.log(`⏹️ Emitted stop all`);
+    } else {
+      console.warn('⚠️ Cannot emit stop all - socket not connected');
+    }
+  }, [socket, isConnected]);
+
   return {
     socket,
     isConnected,
     connectionAttempts,
     emitSound,
+    emitFadeOut,
+    emitStopAll,
   };
 }

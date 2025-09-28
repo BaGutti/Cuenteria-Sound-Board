@@ -10,6 +10,9 @@ export default function AudioPlayer() {
   const [soundInstances, setSoundInstances] = useState<Map<string, Howl>>(new Map());
   const [lastPlayed, setLastPlayed] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isFadingOut, setIsFadingOut] = useState(false);
+  const [masterVolume, setMasterVolume] = useState(1.0);
+  const [playingSounds, setPlayingSounds] = useState<Set<string>>(new Set());
   const { socket, isConnected } = useSocket();
 
   useEffect(() => {
@@ -19,11 +22,29 @@ export default function AudioPlayer() {
       const sound = new Howl({
         src: [button.soundFile],
         preload: true,
+        volume: masterVolume,
         onload: () => {
           console.log(`Loaded: ${button.label}`);
         },
         onloaderror: (id, error) => {
           console.error(`Failed to load ${button.label}:`, error);
+        },
+        onplay: () => {
+          setPlayingSounds(prev => new Set([...prev, button.id]));
+        },
+        onend: () => {
+          setPlayingSounds(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(button.id);
+            return newSet;
+          });
+        },
+        onstop: () => {
+          setPlayingSounds(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(button.id);
+            return newSet;
+          });
         }
       });
       instances.set(button.id, sound);
@@ -52,16 +73,75 @@ export default function AudioPlayer() {
       }
     };
 
+    const handleFadeOutTriggered = (duration: number) => {
+      console.log(`🎚️ Received fade out command: ${duration}ms`);
+      fadeOutAllSounds(duration);
+    };
+
+    const handleStopAllTriggered = () => {
+      console.log(`⏹️ Received stop all command`);
+      stopAllSounds();
+    };
+
     socket.on('soundTriggered', handleSoundTriggered);
+    socket.on('fadeOutTriggered', handleFadeOutTriggered);
+    socket.on('stopAllTriggered', handleStopAllTriggered);
 
     return () => {
       socket.off('soundTriggered', handleSoundTriggered);
+      socket.off('fadeOutTriggered', handleFadeOutTriggered);
+      socket.off('stopAllTriggered', handleStopAllTriggered);
     };
   }, [socket, soundInstances]);
 
   const getCurrentSound = () => {
     if (!lastPlayed) return null;
     return soundButtons.find(button => button.id === lastPlayed);
+  };
+
+  const fadeOutAllSounds = async (duration = 2000) => {
+    setIsFadingOut(true);
+
+    const fadeStep = 50; // ms between volume changes
+    const steps = duration / fadeStep;
+    const volumeDecrement = masterVolume / steps;
+
+    let currentVolume = masterVolume;
+
+    const fadeInterval = setInterval(() => {
+      currentVolume -= volumeDecrement;
+
+      if (currentVolume <= 0) {
+        currentVolume = 0;
+        clearInterval(fadeInterval);
+
+        // Stop all sounds after fade out completes
+        soundInstances.forEach(sound => {
+          sound.stop();
+        });
+
+        // Reset volume back to normal for next sounds
+        setTimeout(() => {
+          soundInstances.forEach(sound => {
+            sound.volume(masterVolume);
+          });
+          setIsFadingOut(false);
+          setPlayingSounds(new Set());
+        }, 100);
+      }
+
+      // Apply current volume to all playing sounds
+      soundInstances.forEach(sound => {
+        sound.volume(currentVolume);
+      });
+    }, fadeStep);
+  };
+
+  const stopAllSounds = () => {
+    soundInstances.forEach(sound => {
+      sound.stop();
+    });
+    setPlayingSounds(new Set());
   };
 
   return (
@@ -88,17 +168,51 @@ export default function AudioPlayer() {
           💫 Reproductor Principal
         </h2>
 
+
+        {/* Playing sounds indicator */}
+        {playingSounds.size > 0 && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="mb-4 text-center"
+          >
+            <div className="text-xs text-cyan-400 mb-2">
+              🎵 Reproduciendo {playingSounds.size} sonido{playingSounds.size > 1 ? 's' : ''}
+            </div>
+            <div className="flex justify-center gap-2 flex-wrap">
+              {Array.from(playingSounds).map(soundId => {
+                const button = soundButtons.find(b => b.id === soundId);
+                return (
+                  <div key={soundId} className="text-xs bg-cyan-600 px-2 py-1 rounded-full">
+                    {button?.emoji} {button?.label}
+                  </div>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+
         <div className="text-center">
           {lastPlayed ? (
             <motion.div
               key={lastPlayed}
               initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
+              animate={{
+                scale: isFadingOut ? 0.9 : 1,
+                opacity: isFadingOut ? 0.6 : 1
+              }}
               className="mb-6"
             >
-              <div className="text-6xl mb-3">
+              <motion.div
+                className="text-6xl mb-3"
+                animate={isFadingOut ? {
+                  scale: [1, 0.95, 1],
+                  opacity: [1, 0.7, 1]
+                } : {}}
+                transition={{ duration: 1, repeat: isFadingOut ? Infinity : 0 }}
+              >
                 {getCurrentSound()?.emoji}
-              </div>
+              </motion.div>
               <div className="text-white text-lg font-medium">
                 {getCurrentSound()?.label}
               </div>
@@ -108,18 +222,37 @@ export default function AudioPlayer() {
                 animate={{ opacity: 1 }}
               >
                 <motion.div
-                  className="h-full bg-gradient-to-r from-cyan-500 to-purple-500"
+                  className={`h-full ${isFadingOut
+                    ? 'bg-gradient-to-r from-orange-500 to-red-500'
+                    : 'bg-gradient-to-r from-cyan-500 to-purple-500'
+                  }`}
                   initial={{ width: "0%" }}
-                  animate={{ width: "100%" }}
-                  transition={{ duration: 1 }}
+                  animate={{
+                    width: isFadingOut ? "0%" : "100%",
+                  }}
+                  transition={{
+                    duration: isFadingOut ? 2 : 1,
+                    ease: isFadingOut ? "easeOut" : "easeInOut"
+                  }}
                 />
               </motion.div>
             </motion.div>
           ) : (
             <div className="mb-6 text-gray-500">
-              <div className="text-6xl mb-3">🎵</div>
+              <div className="text-6xl mb-3">
+                {isFadingOut ? (
+                  <motion.div
+                    animate={{ rotate: 360, scale: [1, 1.1, 1] }}
+                    transition={{ duration: 1, repeat: Infinity }}
+                  >
+                    🎚️
+                  </motion.div>
+                ) : (
+                  "🎵"
+                )}
+              </div>
               <div className="text-lg">
-                Esperando sonidos...
+                {isFadingOut ? "Fade out en progreso..." : "Esperando sonidos..."}
               </div>
             </div>
           )}

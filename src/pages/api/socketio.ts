@@ -33,6 +33,16 @@ const ioHandler = (req: NextApiRequest, res: ExtendedNextApiResponse) => {
         socket.broadcast.emit('soundTriggered', soundId);
       });
 
+      socket.on('fadeOut', (duration: number = 2000) => {
+        console.log(`Fade out requested with duration: ${duration}ms`);
+        socket.broadcast.emit('fadeOutTriggered', duration);
+      });
+
+      socket.on('stopAll', () => {
+        console.log(`Stop all sounds requested`);
+        socket.broadcast.emit('stopAllTriggered');
+      });
+
       socket.on('disconnect', () => {
         console.log(`Socket disconnected: ${socket.id}`);
       });

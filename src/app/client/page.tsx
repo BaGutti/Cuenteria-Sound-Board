@@ -8,7 +8,8 @@ import { motion } from 'framer-motion';
 
 export default function ClientPage() {
   const [pressedButtons, setPressedButtons] = useState<Set<string>>(new Set());
-  const { emitSound, isConnected } = useSocket();
+  const [isProcessingFadeOut, setIsProcessingFadeOut] = useState(false);
+  const { emitSound, emitFadeOut, emitStopAll, isConnected } = useSocket();
 
   const handleButtonPress = (soundId: string) => {
     emitSound(soundId);
@@ -22,6 +23,20 @@ export default function ClientPage() {
         return newSet;
       });
     }, 500);
+  };
+
+  const handleFadeOut = () => {
+    setIsProcessingFadeOut(true);
+    emitFadeOut(2000);
+
+    // Reset the processing state after fade out duration
+    setTimeout(() => {
+      setIsProcessingFadeOut(false);
+    }, 2500);
+  };
+
+  const handleStopAll = () => {
+    emitStopAll();
   };
 
   return (
@@ -53,6 +68,57 @@ export default function ClientPage() {
           animate={{ opacity: 1, scale: 1 }}
         >
           ⚠️ Conectando con el servidor... Espera un momento
+        </motion.div>
+      )}
+
+      {/* Audio Controls */}
+      {isConnected && (
+        <motion.div
+          className="flex gap-3 mb-6 justify-center max-w-4xl mx-auto"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <motion.button
+            onClick={handleFadeOut}
+            disabled={isProcessingFadeOut}
+            className={`
+              px-6 py-3 rounded-xl font-medium text-sm transition-all duration-300 flex items-center gap-2
+              ${!isProcessingFadeOut
+                ? 'bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white shadow-lg'
+                : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+              }
+            `}
+            whileHover={!isProcessingFadeOut ? { scale: 1.05 } : {}}
+            whileTap={!isProcessingFadeOut ? { scale: 0.95 } : {}}
+          >
+            {isProcessingFadeOut ? (
+              <>
+                <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                Fade Out...
+              </>
+            ) : (
+              <>
+                🎚️ Fade Out
+              </>
+            )}
+          </motion.button>
+
+          <motion.button
+            onClick={handleStopAll}
+            disabled={isProcessingFadeOut}
+            className={`
+              px-6 py-3 rounded-xl font-medium text-sm transition-all duration-300
+              ${!isProcessingFadeOut
+                ? 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white shadow-lg'
+                : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+              }
+            `}
+            whileHover={!isProcessingFadeOut ? { scale: 1.05 } : {}}
+            whileTap={!isProcessingFadeOut ? { scale: 0.95 } : {}}
+          >
+            ⏹️ Stop All
+          </motion.button>
         </motion.div>
       )}
 
@@ -91,6 +157,8 @@ export default function ClientPage() {
           <ul className="text-left space-y-1">
             <li>• Presiona los botones cuando el narrador mencione elementos relacionados</li>
             <li>• Los sonidos se reproducirán automáticamente en el dispositivo host</li>
+            <li>• Usa "🎚️ Fade Out" para transiciones suaves entre escenas</li>
+            <li>• Usa "⏹️ Stop All" para parar todos los sonidos inmediatamente</li>
             <li>• ¡Diviértete creando atmósfera para la historia!</li>
           </ul>
         </div>
