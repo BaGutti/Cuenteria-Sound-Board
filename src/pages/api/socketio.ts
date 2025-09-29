@@ -17,10 +17,14 @@ const ioHandler = (req: NextApiRequest, res: ExtendedNextApiResponse) => {
     const io = new ServerIO(res.socket.server, {
       path: '/api/socketio',
       addTrailingSlash: false,
+      transports: ['polling'], // Force polling only for Vercel compatibility
       cors: {
         origin: "*",
         methods: ["GET", "POST"]
-      }
+      },
+      // Increase timeouts for better stability on serverless
+      pingTimeout: 60000,
+      pingInterval: 25000,
     });
 
     res.socket.server.io = io;
@@ -61,6 +65,13 @@ const ioHandler = (req: NextApiRequest, res: ExtendedNextApiResponse) => {
   }
 
   res.end();
+};
+
+export const config = {
+  api: {
+    bodyParser: false,
+    externalResolver: true,
+  },
 };
 
 export default ioHandler;
