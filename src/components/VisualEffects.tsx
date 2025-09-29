@@ -83,6 +83,61 @@ interface AmbientParticle {
   type: 'crowd' | 'door' | 'bell';
 }
 
+interface ButterflyParticle {
+  x: number;
+  y: number;
+  speedX: number;
+  speedY: number;
+  size: number;
+  opacity: number;
+  wingAngle: number;
+  wingSpeed: number;
+}
+
+interface NewsParticle {
+  x: number;
+  y: number;
+  speedY: number;
+  opacity: number;
+  rotation: number;
+  size: number;
+  text: string;
+}
+
+interface MirrorParticle {
+  x: number;
+  y: number;
+  size: number;
+  opacity: number;
+  rotation: number;
+  shimmer: number;
+  life: number;
+  maxLife: number;
+}
+
+interface RadioWave {
+  x: number;
+  y: number;
+  radius: number;
+  maxRadius: number;
+  opacity: number;
+  life: number;
+  maxLife: number;
+}
+
+interface GlassShardParticle {
+  x: number;
+  y: number;
+  speedX: number;
+  speedY: number;
+  rotation: number;
+  rotationSpeed: number;
+  size: number;
+  opacity: number;
+  life: number;
+  maxLife: number;
+}
+
 export default function VisualEffects({ activeEffects, isTheaterMode, onExitTheater }: VisualEffectsProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationIdRef = useRef<number>(0);
@@ -94,6 +149,13 @@ export default function VisualEffects({ activeEffects, isTheaterMode, onExitThea
   const movementParticlesRef = useRef<MovementParticle[]>([]);
   const ambientParticlesRef = useRef<AmbientParticle[]>([]);
   const lightningFlashRef = useRef<number>(0);
+
+  // New effect refs for story-specific animations
+  const butterfliesRef = useRef<ButterflyParticle[]>([]);
+  const newsParticlesRef = useRef<NewsParticle[]>([]);
+  const mirrorParticlesRef = useRef<MirrorParticle[]>([]);
+  const radioWavesRef = useRef<RadioWave[]>([]);
+  const glassShardsRef = useRef<GlassShardParticle[]>([]);
 
   // Handle escape key to exit theater mode
   useEffect(() => {
@@ -266,6 +328,93 @@ export default function VisualEffects({ activeEffects, isTheaterMode, onExitThea
         lightningFlashRef.current = 10; // Flash duration
       }
 
+      // Initialize butterflies effect
+      if (activeEffects.has('butterflies') && butterfliesRef.current.length === 0) {
+        butterfliesRef.current = [];
+        for (let i = 0; i < 15; i++) {
+          butterfliesRef.current.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            speedX: 1 + Math.random() * 2,
+            speedY: (Math.random() - 0.5) * 1,
+            size: 8 + Math.random() * 6,
+            opacity: 0.6 + Math.random() * 0.3,
+            wingAngle: 0,
+            wingSpeed: 0.2 + Math.random() * 0.1,
+          });
+        }
+      }
+
+      // Initialize news/rain particles (lluvia de noticias)
+      if ((activeEffects.has('rain_soft') || activeEffects.has('rain_intense') || activeEffects.has('old_radio')) && newsParticlesRef.current.length === 0) {
+        newsParticlesRef.current = [];
+        const particleCount = activeEffects.has('rain_intense') ? 40 : 25;
+        const newsTexts = ['📰', '📄', '📝', '🗞️', '📋'];
+        for (let i = 0; i < particleCount; i++) {
+          newsParticlesRef.current.push({
+            x: Math.random() * canvas.width,
+            y: -Math.random() * canvas.height,
+            speedY: activeEffects.has('rain_intense') ? 3 + Math.random() * 5 : 1 + Math.random() * 2,
+            opacity: 0.4 + Math.random() * 0.4,
+            rotation: Math.random() * 360,
+            size: 15 + Math.random() * 10,
+            text: newsTexts[Math.floor(Math.random() * newsTexts.length)],
+          });
+        }
+      }
+
+      // Initialize mirror particles
+      if (activeEffects.has('magic_mirrors') && mirrorParticlesRef.current.length === 0) {
+        mirrorParticlesRef.current = [];
+        for (let i = 0; i < 20; i++) {
+          mirrorParticlesRef.current.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            size: 30 + Math.random() * 40,
+            opacity: 0.3 + Math.random() * 0.3,
+            rotation: Math.random() * 360,
+            shimmer: Math.random() * Math.PI * 2,
+            life: 0,
+            maxLife: 120 + Math.random() * 80,
+          });
+        }
+      }
+
+      // Initialize radio waves
+      if ((activeEffects.has('old_radio') || activeEffects.has('static')) && radioWavesRef.current.length === 0) {
+        radioWavesRef.current = [];
+        for (let i = 0; i < 10; i++) {
+          radioWavesRef.current.push({
+            x: canvas.width / 2 + (Math.random() - 0.5) * 200,
+            y: canvas.height / 2 + (Math.random() - 0.5) * 200,
+            radius: 0,
+            maxRadius: 100 + Math.random() * 200,
+            opacity: 0.6,
+            life: Math.random() * 30,
+            maxLife: 80 + Math.random() * 40,
+          });
+        }
+      }
+
+      // Initialize glass shards
+      if (activeEffects.has('glass_break') && glassShardsRef.current.length === 0) {
+        glassShardsRef.current = [];
+        for (let i = 0; i < 50; i++) {
+          glassShardsRef.current.push({
+            x: canvas.width / 2 + (Math.random() - 0.5) * 100,
+            y: canvas.height / 2 + (Math.random() - 0.5) * 100,
+            speedX: (Math.random() - 0.5) * 15,
+            speedY: -Math.random() * 10,
+            rotation: Math.random() * 360,
+            rotationSpeed: (Math.random() - 0.5) * 20,
+            size: 5 + Math.random() * 15,
+            opacity: 0.7 + Math.random() * 0.3,
+            life: 0,
+            maxLife: 60 + Math.random() * 40,
+          });
+        }
+      }
+
       // Clean up particles for inactive effects
       if (!activeEffects.has('rain')) {
         rainDropsRef.current = [];
@@ -290,6 +439,21 @@ export default function VisualEffects({ activeEffects, isTheaterMode, onExitThea
       }
       if (!activeEffects.has('lightning')) {
         lightningFlashRef.current = 0;
+      }
+      if (!activeEffects.has('butterflies')) {
+        butterfliesRef.current = [];
+      }
+      if (!activeEffects.has('rain_soft') && !activeEffects.has('rain_intense') && !activeEffects.has('old_radio')) {
+        newsParticlesRef.current = [];
+      }
+      if (!activeEffects.has('magic_mirrors')) {
+        mirrorParticlesRef.current = [];
+      }
+      if (!activeEffects.has('old_radio') && !activeEffects.has('static')) {
+        radioWavesRef.current = [];
+      }
+      if (!activeEffects.has('glass_break')) {
+        glassShardsRef.current = [];
       }
     };
 
@@ -382,30 +546,60 @@ export default function VisualEffects({ activeEffects, isTheaterMode, onExitThea
         }
       }
 
-      // 3. Water effect (middle layer)
+      // 3. Water/River effect (middle layer) - flowing river with horizontal waves
       if (activeEffects.has('water')) {
-        for (const particle of waterParticlesRef.current) {
-          particle.life++;
-          particle.radius = (particle.life / particle.maxLife) * particle.maxRadius;
+        ctx.save();
 
-          if (particle.life >= particle.maxLife) {
-            particle.x = Math.random() * canvas.width;
-            particle.y = canvas.height * 0.7 + Math.random() * canvas.height * 0.3;
-            particle.radius = 0;
+        // Draw multiple horizontal flowing waves across the entire screen
+        const numWaves = 5;
+        const baseY = canvas.height * 0.75;
+        const time = Date.now() * 0.001; // Time for animation
+
+        for (let i = 0; i < numWaves; i++) {
+          const yOffset = i * 20;
+          const waveY = baseY + yOffset;
+          const opacity = 0.3 - (i * 0.05);
+
+          ctx.globalAlpha = opacity;
+          ctx.strokeStyle = '#4FC3F7';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+
+          // Draw a continuous wavy line across the entire width
+          for (let x = 0; x <= canvas.width; x += 5) {
+            const wave = Math.sin((x * 0.01) + (time * 2) + (i * 0.5)) * 15;
+            const y = waveY + wave;
+
+            if (x === 0) {
+              ctx.moveTo(x, y);
+            } else {
+              ctx.lineTo(x, y);
+            }
+          }
+          ctx.stroke();
+        }
+
+        // Add some flowing particles for extra river effect
+        for (const particle of waterParticlesRef.current) {
+          particle.x += 2; // Move particles to the right (flowing)
+          particle.life++;
+
+          if (particle.x > canvas.width || particle.life >= particle.maxLife) {
+            particle.x = -20;
+            particle.y = canvas.height * 0.7 + Math.random() * canvas.height * 0.25;
             particle.life = 0;
           }
 
-          const opacity = particle.opacity * (1 - particle.life / particle.maxLife);
+          const opacity = 0.4 * (1 - particle.life / particle.maxLife);
 
-          ctx.save();
           ctx.globalAlpha = opacity;
-          ctx.strokeStyle = '#4FC3F7';
-          ctx.lineWidth = 2;
+          ctx.fillStyle = '#4FC3F7';
           ctx.beginPath();
-          ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
-          ctx.stroke();
-          ctx.restore();
+          ctx.arc(particle.x, particle.y, 3, 0, Math.PI * 2);
+          ctx.fill();
         }
+
+        ctx.restore();
       }
 
       // 4. Movement effects (ground layer)
@@ -511,7 +705,182 @@ export default function VisualEffects({ activeEffects, isTheaterMode, onExitThea
         }
       }
 
-      // 7. Rain effect (foreground layer)
+      // 7. Butterflies effect (atmospheric layer)
+      if (activeEffects.has('butterflies')) {
+        for (const butterfly of butterfliesRef.current) {
+          butterfly.x += butterfly.speedX;
+          butterfly.y += butterfly.speedY;
+          butterfly.wingAngle += butterfly.wingSpeed;
+
+          // Flutter movement
+          butterfly.speedY = Math.sin(butterfly.wingAngle) * 2;
+
+          // Wrap around edges
+          if (butterfly.x > canvas.width + 50) butterfly.x = -50;
+          if (butterfly.y < -50) butterfly.y = canvas.height + 50;
+          if (butterfly.y > canvas.height + 50) butterfly.y = -50;
+
+          ctx.save();
+          ctx.globalAlpha = butterfly.opacity;
+          ctx.translate(butterfly.x, butterfly.y);
+
+          // Draw butterfly (two wings)
+          const wingSpread = Math.abs(Math.sin(butterfly.wingAngle)) * butterfly.size * 0.5;
+
+          // Left wing
+          ctx.fillStyle = '#FFD700'; // Golden yellow
+          ctx.beginPath();
+          ctx.ellipse(-wingSpread, 0, butterfly.size * 0.7, butterfly.size, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Right wing
+          ctx.beginPath();
+          ctx.ellipse(wingSpread, 0, butterfly.size * 0.7, butterfly.size, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Body
+          ctx.fillStyle = '#8B4513';
+          ctx.fillRect(-1, -butterfly.size * 0.5, 2, butterfly.size);
+
+          ctx.restore();
+        }
+      }
+
+      // 8. News particles (lluvia de noticias) - special effect
+      if (activeEffects.has('rain_soft') || activeEffects.has('rain_intense') || activeEffects.has('old_radio')) {
+        for (const news of newsParticlesRef.current) {
+          news.y += news.speedY;
+          news.rotation += 2;
+
+          if (news.y > canvas.height + 50) {
+            news.y = -50;
+            news.x = Math.random() * canvas.width;
+          }
+
+          ctx.save();
+          ctx.globalAlpha = news.opacity;
+          ctx.translate(news.x, news.y);
+          ctx.rotate((news.rotation * Math.PI) / 180);
+          ctx.font = `${news.size}px Arial`;
+          ctx.fillText(news.text, 0, 0);
+          ctx.restore();
+        }
+      }
+
+      // 9. Mirror particles (espejos mágicos)
+      if (activeEffects.has('magic_mirrors')) {
+        for (const mirror of mirrorParticlesRef.current) {
+          mirror.life++;
+          mirror.shimmer += 0.1;
+          mirror.rotation += 0.5;
+
+          if (mirror.life >= mirror.maxLife) {
+            mirror.x = Math.random() * canvas.width;
+            mirror.y = Math.random() * canvas.height;
+            mirror.life = 0;
+          }
+
+          const shimmerOpacity = mirror.opacity * (0.5 + Math.sin(mirror.shimmer) * 0.5);
+
+          ctx.save();
+          ctx.globalAlpha = shimmerOpacity;
+          ctx.translate(mirror.x, mirror.y);
+          ctx.rotate((mirror.rotation * Math.PI) / 180);
+
+          // Mirror frame (diamond shape)
+          ctx.strokeStyle = '#C0C0C0'; // Silver
+          ctx.lineWidth = 3;
+          ctx.shadowBlur = 20;
+          ctx.shadowColor = '#FFFFFF';
+          ctx.beginPath();
+          ctx.moveTo(0, -mirror.size / 2);
+          ctx.lineTo(mirror.size / 2, 0);
+          ctx.lineTo(0, mirror.size / 2);
+          ctx.lineTo(-mirror.size / 2, 0);
+          ctx.closePath();
+          ctx.stroke();
+
+          // Reflection shimmer
+          ctx.fillStyle = '#E0E0E0';
+          ctx.globalAlpha = shimmerOpacity * 0.3;
+          ctx.fill();
+
+          ctx.restore();
+        }
+      }
+
+      // 10. Radio waves
+      if (activeEffects.has('old_radio') || activeEffects.has('static')) {
+        for (const wave of radioWavesRef.current) {
+          wave.life++;
+          wave.radius = (wave.life / wave.maxLife) * wave.maxRadius;
+
+          if (wave.life >= wave.maxLife) {
+            wave.x = canvas.width / 2 + (Math.random() - 0.5) * 200;
+            wave.y = canvas.height / 2 + (Math.random() - 0.5) * 200;
+            wave.radius = 0;
+            wave.life = 0;
+          }
+
+          const opacity = wave.opacity * (1 - wave.life / wave.maxLife);
+
+          ctx.save();
+          ctx.globalAlpha = opacity;
+          ctx.strokeStyle = activeEffects.has('static') ? '#FF6B6B' : '#4ECDC4';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([5, 5]);
+          ctx.beginPath();
+          ctx.arc(wave.x, wave.y, wave.radius, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
+
+      // 11. Glass shards
+      if (activeEffects.has('glass_break')) {
+        for (const shard of glassShardsRef.current) {
+          shard.x += shard.speedX;
+          shard.y += shard.speedY;
+          shard.speedY += 0.5; // Gravity
+          shard.rotation += shard.rotationSpeed;
+          shard.life++;
+
+          if (shard.life >= shard.maxLife) {
+            shard.x = canvas.width / 2 + (Math.random() - 0.5) * 100;
+            shard.y = canvas.height / 2 + (Math.random() - 0.5) * 100;
+            shard.speedX = (Math.random() - 0.5) * 15;
+            shard.speedY = -Math.random() * 10;
+            shard.life = 0;
+          }
+
+          const lifeRatio = shard.life / shard.maxLife;
+          const opacity = shard.opacity * (1 - lifeRatio);
+
+          ctx.save();
+          ctx.globalAlpha = opacity;
+          ctx.translate(shard.x, shard.y);
+          ctx.rotate((shard.rotation * Math.PI) / 180);
+
+          // Glass shard (triangle)
+          ctx.fillStyle = '#E0F7FF';
+          ctx.strokeStyle = '#FFFFFF';
+          ctx.lineWidth = 1;
+          ctx.shadowBlur = 10;
+          ctx.shadowColor = '#FFFFFF';
+
+          ctx.beginPath();
+          ctx.moveTo(0, -shard.size / 2);
+          ctx.lineTo(shard.size / 3, shard.size / 2);
+          ctx.lineTo(-shard.size / 3, shard.size / 2);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.restore();
+        }
+      }
+
+      // 12. Rain effect (foreground layer)
       if (activeEffects.has('rain')) {
         for (const drop of rainDropsRef.current) {
           drop.y += drop.speed;

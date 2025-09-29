@@ -48,6 +48,12 @@ const ioHandler = (req: NextApiRequest, res: ExtendedNextApiResponse) => {
         socket.broadcast.emit('stopAllTriggered');
       });
 
+      socket.on('changeStoryMode', (modeId: string) => {
+        console.log(`📖 Story mode changed to: ${modeId} [Socket: ${socket.id}]`);
+        // Broadcast to all clients including the one that sent it
+        io.emit('storyModeChanged', modeId);
+      });
+
       socket.on('disconnect', () => {
         console.log(`Socket disconnected: ${socket.id}`);
       });

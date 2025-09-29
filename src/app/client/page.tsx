@@ -1,15 +1,42 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSocket } from '@/hooks/useSocket';
-import { soundButtons } from '@/lib/sounds';
+import { soundButtons, storyModes } from '@/lib/sounds';
 import SoundButton from '@/components/SoundButton';
 import { motion } from 'framer-motion';
+import { SoundButton as SoundButtonType } from '@/types/sound';
 
 export default function ClientPage() {
   const [pressedButtons, setPressedButtons] = useState<Set<string>>(new Set());
   const [isProcessingFadeOut, setIsProcessingFadeOut] = useState(false);
-  const { emitSound, emitFadeOut, emitStopAll, isConnected } = useSocket();
+  const [currentStoryMode, setCurrentStoryMode] = useState('generic');
+  const [currentButtons, setCurrentButtons] = useState<SoundButtonType[]>(soundButtons);
+  const { emitSound, emitFadeOut, emitStopAll, isConnected, socket } = useSocket();
+
+  // Update buttons when story mode changes
+  useEffect(() => {
+    const mode = storyModes.find(m => m.id === currentStoryMode);
+    if (mode) {
+      setCurrentButtons(mode.buttons);
+    }
+  }, [currentStoryMode]);
+
+  // Listen for story mode changes
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleStoryModeChanged = (modeId: string) => {
+      console.log(`📖 Client received story mode change: ${modeId}`);
+      setCurrentStoryMode(modeId);
+    };
+
+    socket.on('storyModeChanged', handleStoryModeChanged);
+
+    return () => {
+      socket.off('storyModeChanged', handleStoryModeChanged);
+    };
+  }, [socket]);
 
   const handleButtonPress = (soundId: string) => {
     emitSound(soundId);
@@ -124,6 +151,22 @@ export default function ClientPage() {
         </motion.div>
       )}
 
+      {/* Story Mode Indicator */}
+      {isConnected && (
+        <motion.div
+          className="text-center mb-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <div className="bg-gray-800 rounded-lg p-3 max-w-md mx-auto">
+            <p className="text-xs text-gray-400">Modo Activo:</p>
+            <p className="text-white font-medium">
+              {storyModes.find(m => m.id === currentStoryMode)?.name}
+            </p>
+          </div>
+        </motion.div>
+      )}
+
       {/* Sound buttons grid */}
       <motion.div
         className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-w-4xl mx-auto"
@@ -131,7 +174,7 @@ export default function ClientPage() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.2 }}
       >
-        {soundButtons.map((button, index) => (
+        {currentButtons.map((button, index) => (
           <motion.div
             key={button.id}
             initial={{ opacity: 0, y: 20 }}
