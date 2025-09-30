@@ -308,9 +308,56 @@ const story2Buttons: SoundButton[] = [
   // Agregar botones cuando tengas el segundo cuento
 ];
 
-// Story Mode 4: Placeholder para tu tercer cuento
+// Story Mode 4: Tu tercer cuento
 const story3Buttons: SoundButton[] = [
-  // Agregar botones cuando tengas el tercer cuento
+  {
+    id: 'child_crying',
+    emoji: '👦',
+    label: 'Niño llorando',
+    soundFile: '/sounds/baby_cry.mp3',
+    color: 'bg-pink-400 hover:bg-pink-300',
+    volume: 0.7
+  },
+  {
+    id: 'helicopter',
+    emoji: '🚁',
+    label: 'Helicóptero',
+    soundFile: '/sounds/helicopter.mp3',
+    color: 'bg-gray-600 hover:bg-gray-500',
+    volume: 0.8
+  },
+  {
+    id: 'gunshots_multiple',
+    emoji: '💥',
+    label: 'Disparos',
+    soundFile: '/sounds/gunshots.mp3',
+    color: 'bg-red-600 hover:bg-red-500',
+    volume: 0.85
+  },
+  {
+    id: 'gunshot_single',
+    emoji: '🔫',
+    label: 'Disparo',
+    soundFile: '/sounds/gunshot.mp3',
+    color: 'bg-red-700 hover:bg-red-600',
+    volume: 0.9
+  },
+  {
+    id: 'night_silence',
+    emoji: '🌙',
+    label: 'Silencio de la noche',
+    soundFile: '/sounds/birds_silence.mp3',
+    color: 'bg-indigo-900 hover:bg-indigo-800',
+    volume: 0.4
+  },
+  {
+    id: 'people_murmur',
+    emoji: '🗣️',
+    label: 'Murmullo de personas',
+    soundFile: '/sounds/village_murmur.mp3',
+    color: 'bg-purple-500 hover:bg-purple-400',
+    volume: 0.6
+  }
 ];
 
 export const storyModes: StoryMode[] = [
