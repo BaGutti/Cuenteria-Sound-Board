@@ -17,7 +17,7 @@ const ioHandler = (req: NextApiRequest, res: ExtendedNextApiResponse) => {
     const io = new ServerIO(res.socket.server, {
       path: '/api/socketio',
       addTrailingSlash: false,
-      transports: ['polling'], // Force polling only for Vercel compatibility
+      transports: ['websocket', 'polling'], // Try websocket first, fallback to polling
       cors: {
         origin: "*",
         methods: ["GET", "POST"]
@@ -25,6 +25,9 @@ const ioHandler = (req: NextApiRequest, res: ExtendedNextApiResponse) => {
       // Increase timeouts for better stability on serverless
       pingTimeout: 60000,
       pingInterval: 25000,
+      // Better connection handling
+      allowEIO3: true,
+      connectTimeout: 45000,
     });
 
     res.socket.server.io = io;
@@ -54,8 +57,10 @@ const ioHandler = (req: NextApiRequest, res: ExtendedNextApiResponse) => {
 
       socket.on('changeStoryMode', (modeId: string) => {
         console.log(`📖 Story mode changed to: ${modeId} [Socket: ${socket.id}]`);
-        // Broadcast to all clients including the one that sent it
+        // Broadcast to ALL clients (including sender)
         io.emit('storyModeChanged', modeId);
+        // Also echo back to sender to ensure they get it
+        socket.emit('storyModeChanged', modeId);
       });
 
       socket.on('disconnect', () => {

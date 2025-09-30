@@ -16,12 +16,15 @@ export function useSocket() {
 
     const socketInstance = io(socketUrl, {
       path: '/api/socketio',
-      transports: ['polling'], // Use only polling to avoid websocket issues
-      timeout: 10000,
+      transports: ['websocket', 'polling'], // Try websocket first
+      timeout: 20000,
       reconnection: true,
-      reconnectionAttempts: 5,
+      reconnectionAttempts: Infinity, // Keep trying to reconnect
       reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
       forceNew: false,
+      upgrade: true, // Allow upgrading from polling to websocket
+      rememberUpgrade: true,
     });
 
     socketInstance.on('connect', () => {
